@@ -1,0 +1,20 @@
+# OpenClaw source (cloned during install)
+openclaw/
+
+# Runtime state
+.openclaw/
+*.log
+
+# Environment files with secrets
+.env
+*.env
+.env.*
+
+# OS files
+.DS_Store
+*.swp
+*~
+
+# Editor
+.vscode/
+.idea/
