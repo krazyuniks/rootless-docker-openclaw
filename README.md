@@ -31,7 +31,7 @@ OpenClaw is an AI assistant that executes code and commands on your server. Runn
 
 | Feature | Security Benefit |
 |---------|-----------------|
-| **Rootless Docker** | OpenClaw has no root privileges; container escape doesn't grant root access |
+| **[Rootless Docker](https://docs.docker.com/engine/security/rootless/)** | OpenClaw has no root privileges; container escape doesn't grant root access |
 | **UID namespace remapping** | Container UIDs map to different host UIDs, adding isolation layer |
 | **nftables (deny-all)** | Only SSH (rate-limited), HTTP/HTTPS, and gateway port allowed |
 | **Docker-aware firewall** | Forward chain explicitly allows bridge traffic only |
@@ -40,7 +40,7 @@ OpenClaw is an AI assistant that executes code and commands on your server. Runn
 
 ### What This Deployment Provides
 
-- **Rootless Docker**: OpenClaw runs without root privileges
+- **[Rootless Docker](https://docs.docker.com/engine/security/rootless/)**: OpenClaw runs without root privileges
 - **nftables firewall**: Pre-configured with Docker-aware rules
 - **UID mapping**: Automatic configuration for container file access
 - **Systemd integration**: Docker survives firewall reloads
@@ -129,7 +129,7 @@ After installation, the complete structure is:
 
 | Feature | Description |
 |---------|-------------|
-| **Rootless Docker** | OpenClaw runs as non-root user with UID namespace remapping |
+| **[Rootless Docker](https://docs.docker.com/engine/security/rootless/)** | OpenClaw runs as non-root user with UID namespace remapping |
 | **nftables firewall** | Properly configured to work with Docker (avoids `flush ruleset`) |
 | **Systemd integration** | Docker restarts after nftables reloads |
 | **UID mapping** | Files owned correctly for container access |
@@ -376,4 +376,5 @@ To customize firewall rules, edit `configs/nftables.conf` before running `instal
 ## Links
 
 - [OpenClaw Docs](https://docs.openclaw.ai/)
+- [Docker Rootless Mode](https://docs.docker.com/engine/security/rootless/)
 - [Docker Install Guide](https://docs.openclaw.ai/install/docker)
