@@ -6,12 +6,45 @@ Automated deployment of OpenClaw with rootless Docker, nftables firewall, and pr
 
 ## Overview
 
-This deployment automates the complete setup of OpenClaw as a non-root service using rootless Docker. It includes:
+This deployment automates the complete setup of OpenClaw as a non-root service using rootless Docker.
+
+### Why This Matters
+
+OpenClaw is an AI assistant that executes code and commands on your server. Running such a system as **root** is extremely risky—a compromised container would have complete control over your host. This deployment provides a secure, production-ready setup that:
+
+- Isolates OpenClaw from the host system
+- Minimizes attack surface through proper firewall configuration
+- Uses least-privilege principles throughout
+- Automates security best practices
+
+### Security Risks Mitigated
+
+| Risk | Without This Deployment | How This Repo Helps |
+|------|------------------------|---------------------|
+| **Root privilege escalation** | OpenClaw runs as root = full system access | Runs as unprivileged user with UID namespace isolation |
+| **Firewall misconfiguration** | Manual setup often breaks Docker networking | Pre-configured nftables with Docker-aware rules |
+| **Container escape impact** | Root container = host takeover | Non-root container limits damage scope |
+| **Unnecessary exposed ports** | Services exposed to internet | Deny-all firewall with only essential ports open |
+| **Docker daemon breaks on firewall reload** | Manual `flush ruleset` wipes NAT rules | Uses table-specific flush + systemd override |
+
+### Security Features
+
+| Feature | Security Benefit |
+|---------|-----------------|
+| **Rootless Docker** | OpenClaw has no root privileges; container escape doesn't grant root access |
+| **UID namespace remapping** | Container UIDs map to different host UIDs, adding isolation layer |
+| **nftables (deny-all)** | Only SSH (rate-limited), HTTP/HTTPS, and gateway port allowed |
+| **Docker-aware firewall** | Forward chain explicitly allows bridge traffic only |
+| **No exposed dashboard** | Gateway binds to localhost; requires SSH tunnel for access |
+| **Docker survives firewall reload** | Systemd override prevents service disruption |
+
+### What This Deployment Provides
 
 - **Rootless Docker**: OpenClaw runs without root privileges
 - **nftables firewall**: Pre-configured with Docker-aware rules
 - **UID mapping**: Automatic configuration for container file access
 - **Systemd integration**: Docker survives firewall reloads
+- **SSH-only dashboard access**: Gateway requires tunnel for access
 
 ### Deployment Targets
 
