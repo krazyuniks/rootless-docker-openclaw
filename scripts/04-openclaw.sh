@@ -5,7 +5,7 @@
 
 set -e
 
-USER="openclaw"
+USER="${OPENCLAW_USER:-openclaw}"
 OPENCLAW_DIR="/home/$USER/openclaw"
 OPENCLAW_REPO="https://github.com/openclaw/openclaw.git"
 
@@ -30,10 +30,17 @@ for dir in workspace agents/main/agent credentials identity canvas cron telegram
 done
 
 # Fix ownership for container (container UID 1000 → host UID)
+# Note: The -1 is because container UID 0 maps to the host user's UID,
+# and container UID 1+ maps to the subuid range. So container UID 1000
+# maps to subuid_base + 999, not subuid_base + 1000.
 SUBUID_BASE=$(grep "$USER" /etc/subuid | awk -F: '{print $2}')
 CONTAINER_UID=$(($SUBUID_BASE + 1000 - 1))
 echo "==> Fixing ownership for container UID mapping (UID $CONTAINER_UID)..."
-sudo chown -R "$CONTAINER_UID:$CONTAINER_UID" ".openclaw"
+chown -R "$CONTAINER_UID:$CONTAINER_UID" ".openclaw"
+
+# Grant container traverse permission on home directory
+echo "==> Granting container traverse permission on /home/$USER..."
+setfacl -m "u:$CONTAINER_UID:x" "/home/$USER"
 echo "✓ Workspace configured"
 
 # Run OpenClaw setup

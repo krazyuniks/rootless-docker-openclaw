@@ -176,6 +176,36 @@ http://127.0.0.1:18789/?token=<your-token>
 ssh -L 18789:127.0.0.1:18789 -l openclaw <server-hostname>
 ```
 
+## Device Pairing
+
+When you first access the dashboard, you'll see a "pairing required" error. This is a security feature - each browser/device must be approved before it can connect.
+
+### Approve a Browser
+
+```bash
+# List pending pairing requests
+sudo -u openclaw docker exec openclaw-gateway node dist/index.js devices list
+
+# You'll see output like:
+# Pending (1)
+# ┌──────────────────────────────────────┬─────────────┬──────────┬────────────┐
+# │ Request                              │ Device      │ Role     │ IP         │
+# ├──────────────────────────────────────┼─────────────┼──────────┼────────────┤
+# │ 6021dc52-04d9-42e6-826e-f9b620a19a3a │ 15c051a...  │ operator │ 172.18.0.1 │
+# └──────────────────────────────────────┴─────────────┴──────────┴────────────┘
+
+# Approve using the Request ID (first column)
+sudo -u openclaw docker exec openclaw-gateway node dist/index.js devices approve 6021dc52-04d9-42e6-826e-f9b620a19a3a
+```
+
+After approval, refresh your browser - you should now be connected.
+
+### List Paired Devices
+
+```bash
+sudo -u openclaw docker exec openclaw-gateway node dist/index.js devices list
+```
+
 ## Quick Reference
 
 ```bash
@@ -190,6 +220,7 @@ sudo -u openclaw docker rm -f openclaw-gateway
 
 # CLI commands (while gateway running)
 sudo -u openclaw docker exec openclaw-gateway node dist/index.js devices list
+sudo -u openclaw docker exec openclaw-gateway node dist/index.js devices approve <REQUEST_ID>
 sudo -u openclaw docker exec openclaw-gateway node dist/index.js pairing approve telegram <CODE>
 ```
 
@@ -285,6 +316,17 @@ host_uid = subuid_base + container_uid - 1
 host_uid = 165536 + 1000 - 1 = 166535
 ```
 
+**Why the `-1`?** Rootless Docker's UID mapping reserves container UID 0 for the host user:
+- Container UID 0 → Host user's actual UID (e.g., 1001 for `openclaw`)
+- Container UID 1+ → Subordinate UID range from `/etc/subuid`
+
+So container UID 1000 maps to `subuid_base + (1000 - 1)` because the subuid range starts at container UID 1, not 0. You can verify this mapping inside a container:
+```bash
+docker run --rm openclaw:local cat /proc/self/uid_map
+#          0       1001          1    <- UID 0 maps to host user (1001)
+#          1     165536      65536    <- UID 1+ maps to subuid range
+```
+
 | Container UID | Host UID | Calculation |
 |---------------|----------|-------------|
 | 1000 (node) | Varies | `subuid_base + 1000 - 1` |
@@ -303,7 +345,12 @@ grep openclaw /etc/subuid | awk -F: '{print $2}'  # e.g., 165536
 SUBUID_BASE=$(grep openclaw /etc/subuid | awk -F: '{print $2}')
 CONTAINER_UID=$(($SUBUID_BASE + 1000 - 1))
 sudo chown -R $CONTAINER_UID:$CONTAINER_UID /home/openclaw/.openclaw
+
+# Also ensure container can traverse the home directory
+sudo setfacl -m u:$CONTAINER_UID:x /home/openclaw
 ```
+
+**Note:** The container needs execute (traverse) permission on `/home/openclaw` to access the `.openclaw` subdirectory. The `setfacl` command grants this without changing ownership of the home directory.
 
 ### Debug Permissions
 

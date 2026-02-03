@@ -11,8 +11,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-USER="openclaw"
-DEPLOY_DIR="/home/$USER/rootless-openclaw"
+
+# Configurable username (default: openclaw)
+OPENCLAW_USER="${OPENCLAW_USER:-openclaw}"
+export OPENCLAW_USER
+DEPLOY_DIR="/home/$OPENCLAW_USER/rootless-openclaw"
 
 echo "==================================="
 echo " Rootless OpenClaw Deployment"
@@ -38,9 +41,9 @@ echo ""
 "$SCRIPT_DIR/scripts/04-openclaw.sh"
 echo ""
 
-# Copy deployment repo to /home/openclaw/
+# Copy deployment repo to user home
 echo "==> Copying deployment repo to $DEPLOY_DIR..."
-sudo -u "$USER" cp -r "$SCRIPT_DIR" "$DEPLOY_DIR"
+sudo -u "$OPENCLAW_USER" cp -r "$SCRIPT_DIR" "$DEPLOY_DIR"
 echo "✓ Deployment repo installed to $DEPLOY_DIR"
 echo ""
 
@@ -56,5 +59,5 @@ echo ""
 echo "To manage OpenClaw:"
 echo "  cd $DEPLOY_DIR"
 echo "  sudo ./scripts/05-start.sh      # Start gateway"
-echo "  sudo -u $USER docker logs -f openclaw-gateway  # View logs"
+echo "  sudo -u $OPENCLAW_USER docker logs -f openclaw-gateway  # View logs"
 echo ""

@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Install rootless Docker for openclaw user
+# Install rootless Docker for user
 #
 
 set -e
 
-USER="openclaw"
+USER="${OPENCLAW_USER:-openclaw}"
 DOCKER_DAEMON_SRC="$(dirname "$0")/../configs/docker-daemon.json"
 DOCKER_DAEMON_DST="/home/$USER/.config/docker/daemon.json"
 SYSTEMD_OVERRIDE_SRC="$(dirname "$0")/../configs/systemd-docker-override.conf"
@@ -22,7 +22,7 @@ else
     echo "✓ Docker already installed"
 fi
 
-# Configure rootless Docker for openclaw user
+# Configure rootless Docker for user
 echo "==> Configuring rootless Docker..."
 sudo -u "$USER" dockerd-rootless-setuptool.sh install
 echo "✓ Rootless Docker configured"

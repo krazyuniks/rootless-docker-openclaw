@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Create openclaw user and configure for rootless Docker
+# Create user and configure for rootless Docker
 #
 
 set -e
 
-USER="openclaw"
+USER="${OPENCLAW_USER:-openclaw}"
 echo "==> Creating user: $USER"
 
 # Create user if doesn't exist
