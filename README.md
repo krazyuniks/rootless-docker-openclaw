@@ -1,6 +1,28 @@
 # Rootless OpenClaw Deployment
 
-Deploy OpenClaw with rootless Docker, nftables firewall, and proper UID/GID mapping.
+Automated deployment of OpenClaw with rootless Docker, nftables firewall, and proper UID/GID mapping.
+
+**Designed for cloud servers, dedicated servers, and VPS instances. Also suitable for local installations.**
+
+## Overview
+
+This deployment automates the complete setup of OpenClaw as a non-root service using rootless Docker. It includes:
+
+- **Rootless Docker**: OpenClaw runs without root privileges
+- **nftables firewall**: Pre-configured with Docker-aware rules
+- **UID mapping**: Automatic configuration for container file access
+- **Systemd integration**: Docker survives firewall reloads
+
+### Deployment Targets
+
+| Environment | Recommended | Notes |
+|-------------|-------------|-------|
+| Cloud servers (AWS, GCP, Azure, DigitalOcean, etc.) | ✅ Yes | Ideal for production |
+| Dedicated servers (Hetzner, OVH, etc.) | ✅ Yes | Full isolation |
+| VPS instances | ✅ Yes | Resource-efficient |
+| Local/VM (Linux) | ✅ Yes | Great for development |
+| WSL2 | ⚠️ Possible | May need additional config |
+| macOS | ❌ Not supported | nftables not available |
 
 ## Quick Start
 
@@ -80,16 +102,51 @@ After installation, the complete structure is:
 | **UID mapping** | Files owned correctly for container access |
 | **Automated install** | Single script handles entire setup |
 
+## Accessing the Dashboard
+
+### Direct SSH (simplest)
+
+```bash
+# Create SSH tunnel from your local machine
+ssh -L 18789:127.0.0.1:18789 openclaw@<server>
+
+# Open in browser
+http://127.0.0.1:18789/?token=<your-token>
+```
+
+### Via SSH Jump Host (for servers behind bastion)
+
+If your server is only accessible through a jump host:
+
+```bash
+# Add to ~/.ssh/config on your local machine
+Host bastion
+    HostName bastion.example.com
+    User your-user
+
+Host openclaw-server
+    HostName 192.168.1.100  # Private IP of OpenClaw server
+    User openclaw
+    ProxyJump bastion
+    LocalForward 18789 127.0.0.1:18789
+
+# Connect with single command
+ssh openclaw-server
+
+# Dashboard available at
+http://127.0.0.1:18789/?token=<your-token>
+```
+
+### One-liner tunnel (quick access)
+
+```bash
+ssh -L 18789:127.0.0.1:18789 -l openclaw <server-hostname>
+```
+
 ## Quick Reference
 
 ```bash
-# SSH tunnel (from local machine)
-ssh -L 18789:127.0.0.1:18789 openclaw@<server>
-
-# Dashboard URL
-http://127.0.0.1:18789/?token=<token>
-
-# Get token
+# Get your auth token
 sudo -u openclaw cat /home/openclaw/.openclaw/openclaw.json | jq -r '.gateway.auth.token'
 
 # Start gateway
@@ -104,22 +161,6 @@ sudo -u openclaw docker exec openclaw-gateway node dist/index.js pairing approve
 ```
 
 ## Common Operations
-
-### Access Dashboard
-
-From your local machine:
-
-```bash
-ssh -L 18789:127.0.0.1:18789 openclaw@<server>
-```
-
-Get the token:
-
-```bash
-sudo -u openclaw cat /home/openclaw/.openclaw/openclaw.json | jq -r '.gateway.auth.token'
-```
-
-Open: `http://127.0.0.1:18789/?token=<your-token>`
 
 ### View Logs
 
@@ -297,6 +338,7 @@ To customize firewall rules, edit `configs/nftables.conf` before running `instal
 - Add additional allowed ports in the `input` chain
 - Modify rate limiting rules
 - Add custom logging rules
+- Change the OpenClaw gateway port (default: 18789)
 
 ## Links
 
