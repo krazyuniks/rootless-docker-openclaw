@@ -10,13 +10,8 @@ IMAGE_NAME="openclaw:local"
 CONTAINER_NAME="openclaw-gateway"
 PORT=18789
 
-# Load API keys from env file if it exists
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env"
-[ -f "$ENV_FILE" ] && source "$ENV_FILE"
-
-# Optional API keys (set these in environment, env file, or edit here)
-BRAVE_API_KEY="${BRAVE_API_KEY:-}"
+# Load API keys from .openclaw/.env (as per OpenClaw docs)
+ENV_FILE="/home/$USER/.openclaw/.env"
 
 # Use sudo only if not running as the target user
 if [ "$(whoami)" = "$USER" ]; then
@@ -39,7 +34,7 @@ fi
 
 # Build environment variable flags
 ENV_FLAGS=""
-[ -n "$BRAVE_API_KEY" ] && ENV_FLAGS="$ENV_FLAGS -e BRAVE_API_KEY=$BRAVE_API_KEY"
+[ -f "$ENV_FILE" ] && ENV_FLAGS="--env-file $ENV_FILE"
 
 # Start gateway
 echo "==> Starting gateway on port $PORT..."

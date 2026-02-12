@@ -19,3 +19,5 @@ openclaw/
 # Editor
 .vscode/
 .idea/
+
+.claude/settings.local.json
